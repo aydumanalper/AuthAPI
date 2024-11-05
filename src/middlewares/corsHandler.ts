@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 
 export function corsHandler(req: Request, res: Response, next: NextFunction) {
-    const allowedOrigins = ['https://www.thunderclient.com', 'http://localhost:1337']; // izin verilen origin'ler listesi
+    const allowedOrigins = ['http://localhost:5000']; // izin verilen origin'ler listesi
     const origin = req.header('origin');
 
     if (!origin || allowedOrigins.includes(origin)) {

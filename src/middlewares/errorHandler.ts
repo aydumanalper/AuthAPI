@@ -9,7 +9,7 @@ const errorHandler = (
 ) => {
   logger.error(err.message);
 
-  // Customize based on error type
+ 
   res.status(500).json({
     success: false,
     message: 'Server Error',

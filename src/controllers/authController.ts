@@ -1,4 +1,3 @@
-// src/controllers/authController.ts
 
 import { Request, Response, NextFunction } from 'express';
 import User, { IUser } from '../models/User';
@@ -27,7 +26,7 @@ export const register = async (
       res
         .status(400)
         .json({ success: false, message: 'Email already in use' });
-      return; // Exit the function
+      return; 
     }
 
     // Create new user

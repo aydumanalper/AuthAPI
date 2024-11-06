@@ -1,9 +1,10 @@
 // src/routes/authRoutes.ts
 
 import express from 'express';
-import { login, reauth, register } from '../controllers/authController';
+import { login, logout, reauth, register } from '../controllers/authController';
 import validateRequest from '../middlewares/validateRequest';
 import { loginSchema, reauthSchema, registerSchema } from '../validations/authValidation';
+import authenticate from '../middlewares/authenticate';
 
 const router = express.Router();
 
@@ -200,5 +201,31 @@ router.post('/login', validateRequest(loginSchema), login);
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post('/reauth', validateRequest(reauthSchema), reauth);
+
+
+/**
+ * @swagger
+ * /api/auth/logout:
+ *   post:
+ *     summary: Logout a user by invalidating the refresh token
+ *     tags: [Auth]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Logged out successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/LogoutResponse'
+ *       401:
+ *         description: Unauthorized - Invalid access token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.post('/logout', authenticate, logout);
+
 
 export default router;

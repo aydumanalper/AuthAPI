@@ -1,6 +1,6 @@
 
 import { Request, Response, NextFunction } from 'express';
-import User from '../models/User';
+import User, { IUser } from '../models/User';
 import dotenv from 'dotenv';
 import {
   generateAccessToken,
@@ -160,6 +160,36 @@ export const reauth = async (
         accessToken: newAccessToken,
         refreshToken: newRefreshToken, 
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const logout = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    // The user is attached to the request by the authenticate middleware
+    const user = (req as any).user as IUser;
+
+    if (!user) {
+      res.status(401).json({
+        success: false,
+        message: 'Unauthorized',
+      });
+      return;
+    }
+
+    // Remove the refresh token from the user
+    user.refreshToken = undefined;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Logged out successfully',
     });
   } catch (error) {
     next(error);

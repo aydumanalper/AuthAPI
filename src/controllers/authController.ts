@@ -195,3 +195,72 @@ export const logout = async (
     next(error);
   }
 };
+
+export const removeAccount = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    // The user is attached to the request by the authenticate middleware
+    const user = (req as any).user as IUser;
+
+    if (!user) {
+      res.status(401).json({
+        success: false,
+        message: 'Unauthorized',
+      });
+      return;
+    }
+
+    // Optional: Invalidate the user's Access Token by blacklisting
+    // const authHeader = req.headers.authorization;
+    // if (authHeader && authHeader.startsWith('Bearer ')) {
+    //   const accessToken = authHeader.split(' ')[1];
+    //   const decoded = jwt.decode(accessToken) as { exp: number };
+    //   if (decoded && decoded.exp) {
+    //     const expiresAt = new Date(decoded.exp * 1000);
+    //     await TokenBlacklist.create({ token: accessToken, expiresAt });
+    //   }
+    // }
+
+    // Delete the user from the database
+    await User.findByIdAndDelete(user._id);
+
+    res.status(200).json({
+      success: true,
+      message: 'Account removed successfully',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    // The user is attached to the request by the authenticate middleware
+    const user = (req as any).user as IUser;
+
+    if (!user) {
+      res.status(401).json({
+        success: false,
+        message: 'Unauthorized',
+      });
+      return;
+    }
+
+    // Exclude sensitive information before sending
+    const { password, refreshToken, __v, ...userData } = user.toObject();
+
+    res.status(200).json({
+      success: true,
+      data: userData,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

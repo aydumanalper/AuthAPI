@@ -4,17 +4,16 @@
  * @swagger
  * components:
  *   schemas:
- *     User:
+ *     RegisterRequest:
  *       type: object
  *       required:
  *         - name
  *         - surname
  *         - birthday
  *         - email
+ *         - password
+ *         - confirmPassword
  *       properties:
- *         id:
- *           type: string
- *           example: 60d0fe4f5311236168a109ca
  *         name:
  *           type: string
  *           example: John
@@ -29,6 +28,28 @@
  *           type: string
  *           format: email
  *           example: john.doe@example.com
+ *         password:
+ *           type: string
+ *           format: password
+ *           example: password123
+ *         confirmPassword:
+ *           type: string
+ *           format: password
+ *           example: password123
+ *     LoginRequest:
+ *       type: object
+ *       required:
+ *         - email
+ *         - password
+ *       properties:
+ *         email:
+ *           type: string
+ *           format: email
+ *           example: john.doe@example.com
+ *         password:
+ *           type: string
+ *           format: password
+ *           example: password123
  *     AuthResponse:
  *       type: object
  *       properties:
@@ -36,10 +57,53 @@
  *           type: boolean
  *           example: true
  *         data:
- *           $ref: '#/components/schemas/User'
- *         token:
+ *           type: object
+ *           properties:
+ *             id:
+ *               type: string
+ *               example: 60d0fe4f5311236168a109ca
+ *             name:
+ *               type: string
+ *               example: John
+ *             surname:
+ *               type: string
+ *               example: Doe
+ *             email:
+ *               type: string
+ *               example: john.doe@example.com
+ *             accessToken:
+ *               type: string
+ *               example: eyJhbGciOiJIUzI1NiIsInR...
+ *     ReauthResponse:
+ *       type: object
+ *       properties:
+ *         success:
+ *           type: boolean
+ *           example: true
+ *         data:
+ *           type: object
+ *           properties:
+ *             accessToken:
+ *               type: string
+ *               example: eyJhbGciOiJIUzI1NiIsInR...
+ *     LogoutResponse:
+ *       type: object
+ *       properties:
+ *         success:
+ *           type: boolean
+ *           example: true
+ *         message:
  *           type: string
- *           example: eyJhbGciOiJIUzI1NiIsInR...
+ *           example: Logged out successfully
+ *     RemoveAccountResponse:
+ *       type: object
+ *       properties:
+ *         success:
+ *           type: boolean
+ *           example: true
+ *         message:
+ *           type: string
+ *           example: Account removed successfully
  *     ErrorResponse:
  *       type: object
  *       properties:
@@ -48,10 +112,10 @@
  *           example: false
  *         message:
  *           type: string
- *           example: Invalid email or password
+ *           example: "An error occurred"
  *         errors:
  *           type: array
  *           items:
  *             type: string
- *           example: ["\"email\" is required", "Password must be at least 6 characters"]
+ *           example: ["Error detail 1", "Error detail 2"]
  */

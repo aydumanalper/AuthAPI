@@ -1,9 +1,9 @@
 // src/routes/authRoutes.ts
 
 import express from 'express';
-import { getUser, login, logout, reauth, register, removeAccount } from '../controllers/authController';
+import { changePassword, editUserInfo, getUser, login, logout, reauth, register, removeAccount } from '../controllers/authController';
 import validateRequest from '../middlewares/validateRequest';
-import { loginSchema, reauthSchema, registerSchema } from '../validations/authValidation';
+import { changePasswordSchema, editUserInfoSchema, loginSchema, reauthSchema, registerSchema } from '../validations/authValidation';
 import authenticate from '../middlewares/authenticate';
 
 const router = express.Router();
@@ -247,6 +247,158 @@ router.delete('/remove', authenticate, removeAccount);
  *                 - "Access token is invalid or missing"
  */
 router.get('/user', authenticate, getUser);
+
+
+/**
+ * @swagger
+ * /api/auth/change-password:
+ *   put:
+ *     summary: Change the authenticated user's password
+ *     tags: [Auth]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ChangePasswordRequest'
+ *     responses:
+ *       200:
+ *         description: Password changed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ChangePasswordResponse'
+ *             example:
+ *               success: true
+ *               message: "Password changed successfully"
+ *       400:
+ *         description: Bad Request - Validation errors or incorrect old password
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ChangePasswordErrorResponse'
+ *             example:
+ *               success: false
+ *               message: "Incorrect old password"
+ *               errors:
+ *                 - "Old password does not match our records"
+ *       401:
+ *         description: Unauthorized - Invalid or missing access token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ChangePasswordErrorResponse'
+ *             example:
+ *               success: false
+ *               message: "Unauthorized: Invalid access token"
+ *               errors:
+ *                 - "Access token is invalid or missing"
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               success: false
+ *               message: "An unexpected error occurred"
+ *               errors:
+ *                 - "Database connection failed"
+ */
+router.put('/change-password', authenticate, validateRequest(changePasswordSchema), changePassword);
+
+
+/**
+ * @swagger
+ * /api/auth/edit-user:
+ *   put:
+ *     summary: Edit the authenticated user's information
+ *     tags: [Auth]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/EditUserInfoRequest'
+ *     responses:
+ *       200:
+ *         description: User information updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/EditUserInfoResponse'
+ *             example:
+ *               success: true
+ *               data:
+ *                 id: "60d0fe4f5311236168a109ca"
+ *                 name: "Jane"
+ *                 surname: "Smith"
+ *                 birthday: "1992-02-02T00:00:00.000Z"
+ *                 email: "john.doe@example.com"
+ *       400:
+ *         description: Bad Request - Validation errors
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/EditUserInfoErrorResponse'
+ *             examples:
+ *               InvalidBirthday:
+ *                 summary: Invalid birthday format
+ *                 value:
+ *                   success: false
+ *                   message: "Validation errors"
+ *                   errors:
+ *                     - "Birthday must be a valid date"
+ *               NoFieldsProvided:
+ *                 summary: No fields provided
+ *                 value:
+ *                   success: false
+ *                   message: "At least one of name, surname, or birthday must be provided"
+ *                   errors:
+ *                     - "At least one of name, surname, or birthday must be provided"
+ *       401:
+ *         description: Unauthorized - Invalid or missing access token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               success: false
+ *               message: "Unauthorized: Invalid access token"
+ *               errors:
+ *                 - "Access token is invalid or missing"
+ *       404:
+ *         description: Not Found - User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               success: false
+ *               message: "User not found"
+ *               errors:
+ *                 - "User does not exist"
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               success: false
+ *               message: "An unexpected error occurred"
+ *               errors:
+ *                 - "Database connection failed"
+ */
+router.put('/edit-user', 
+    authenticate, 
+    validateRequest(editUserInfoSchema), 
+    editUserInfo
+  );
 
 
 export default router;

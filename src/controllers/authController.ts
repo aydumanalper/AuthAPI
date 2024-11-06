@@ -7,6 +7,7 @@ import {
   generateRefreshToken,
   verifyRefreshToken,
 } from '../utils/tokenUtils';
+import bcrypt from 'bcryptjs';
 
 dotenv.config();
 
@@ -259,6 +260,112 @@ export const getUser = async (
     res.status(200).json({
       success: true,
       data: userData,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const changePassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    // The user is attached to the request by the authenticate middleware
+    const user = (req as any).user as IUser;
+
+    if (!user) {
+      res.status(401).json({
+        success: false,
+        message: 'Unauthorized',
+      });
+      return;
+    }
+
+    const { oldPassword, newPassword, confirmNewPassword } = req.body;
+
+    // Verify that oldPassword matches the current password
+    const isMatch = await user.comparePassword(oldPassword);
+    if (!isMatch) {
+      res.status(400).json({
+        success: false,
+        message: 'Incorrect old password',
+      });
+      return;
+    }
+
+    // Optional: Check if the new password is different from the old password
+    const isSamePassword = await bcrypt.compare(newPassword, user.password);
+    if (isSamePassword) {
+      res.status(400).json({
+        success: false,
+        message: 'New password must be different from the old password',
+      });
+      return;
+    }
+
+    // Update the user's password
+    user.password = newPassword;
+    await user.save();
+
+    // Optional: Invalidate existing Refresh Tokens by removing them
+    user.refreshToken = undefined;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Password changed successfully',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+export const editUserInfo = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    // The user is attached to the request by the authenticate middleware
+    const user = (req as any).user as IUser;
+
+    if (!user) {
+      res.status(401).json({
+        success: false,
+        message: 'Unauthorized',
+      });
+      return;
+    }
+
+    const { name, surname, birthday } = req.body;
+
+    // Create an object with the fields to update
+    const updatedFields: Partial<IUser> = {};
+    if (name !== undefined) updatedFields.name = name;
+    if (surname !== undefined) updatedFields.surname = surname;
+    if (birthday !== undefined) updatedFields.birthday = birthday;
+
+    // Update the user's information
+    const updatedUser = await User.findByIdAndUpdate(
+      user._id,
+      { $set: updatedFields },
+      { new: true, runValidators: true }
+    ).select('-password -refreshToken -__v'); // Exclude sensitive fields
+
+    if (!updatedUser) {
+      res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      data: updatedUser,
     });
   } catch (error) {
     next(error);

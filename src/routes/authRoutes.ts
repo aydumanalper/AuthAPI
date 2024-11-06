@@ -1,9 +1,9 @@
 // src/routes/authRoutes.ts
 
 import express from 'express';
-import { register } from '../controllers/authController';
+import { login, register } from '../controllers/authController';
 import validateRequest from '../middlewares/validateRequest';
-import { registerSchema } from '../validations/authValidation';
+import { loginSchema, registerSchema } from '../validations/authValidation';
 
 const router = express.Router();
 
@@ -107,5 +107,45 @@ const router = express.Router();
 
 
 router.post('/register', validateRequest(registerSchema), register);
+
+/**
+ * @swagger
+ * /api/auth/login:
+ *   post:
+ *     summary: Login a user
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: john.doe@example.com
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 example: password123
+ *     responses:
+ *       200:
+ *         description: User logged in successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AuthResponse'
+ *       400:
+ *         description: Bad Request - Validation errors or invalid credentials
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.post('/login', validateRequest(loginSchema), login);
 
 export default router;

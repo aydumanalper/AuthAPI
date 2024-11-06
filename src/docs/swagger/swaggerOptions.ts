@@ -1,11 +1,11 @@
-// src/docs/swagger.ts
+// src/docs/swagger/swaggerOptions.ts
 
-import swaggerJsdoc from 'swagger-jsdoc';
+import { Options } from 'swagger-jsdoc';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-const options: swaggerJsdoc.Options = {
+const swaggerOptions: Options = {
   definition: {
     openapi: '3.0.0',
     info: {
@@ -18,7 +18,7 @@ const options: swaggerJsdoc.Options = {
         url: `http://localhost:${process.env.PORT || 5000}`,
         description: 'Development server',
       },
-      // You can add production server details here
+      // Add production servers as needed
     ],
     components: {
       securitySchemes: {
@@ -28,6 +28,7 @@ const options: swaggerJsdoc.Options = {
           bearerFormat: 'JWT',
         },
       },
+      // Schemas are imported via JSDoc comments
     },
     security: [
       {
@@ -36,9 +37,7 @@ const options: swaggerJsdoc.Options = {
     ],
   },
   // Path to the API docs
-  apis: ['./src/routes/*.ts', './src/models/*.ts'], // Adjust the paths as needed
+  apis: ['./src/routes/*.ts', './src/docs/swagger/components/*.ts'], // Adjust paths as needed
 };
 
-const swaggerSpec = swaggerJsdoc(options);
-
-export default swaggerSpec;
+export default swaggerOptions;

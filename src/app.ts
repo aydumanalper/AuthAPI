@@ -4,7 +4,7 @@ import morgan from 'morgan';
 import errorHandler from './middlewares/errorHandler';
 import mainRouter from './routes/mainRoute';
 import swaggerUi from 'swagger-ui-express';
-import swaggerSpec from './docs/swagger'
+import swaggerSpec from './docs/swagger/swagger'
 import helmetMiddleware from './middlewares/helmet';
 
 

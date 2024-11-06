@@ -1,9 +1,9 @@
 // src/routes/authRoutes.ts
 
 import express from 'express';
-import { login, register } from '../controllers/authController';
+import { login, reauth, register } from '../controllers/authController';
 import validateRequest from '../middlewares/validateRequest';
-import { loginSchema, registerSchema } from '../validations/authValidation';
+import { loginSchema, reauthSchema, registerSchema } from '../validations/authValidation';
 
 const router = express.Router();
 
@@ -147,5 +147,58 @@ router.post('/register', validateRequest(registerSchema), register);
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post('/login', validateRequest(loginSchema), login);
+
+/**
+ * @swagger
+ * /api/auth/reauth:
+ *   post:
+ *     summary: Reauthenticate and obtain new access token
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - refreshToken
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *                 example: eyJhbGciOiJIUzI1NiIsInR...
+ *     responses:
+ *       200:
+ *         description: New access token generated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     accessToken:
+ *                       type: string
+ *                       example: eyJhbGciOiJIUzI1NiIsInR...
+ *                     refreshToken:
+ *                       type: string
+ *                       example: eyJhbGciOiJIUzI1NiIsInR...
+ *       400:
+ *         description: Bad Request - Refresh Token is required
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Unauthorized - Invalid Refresh Token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.post('/reauth', validateRequest(reauthSchema), reauth);
 
 export default router;

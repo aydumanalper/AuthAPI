@@ -7,6 +7,7 @@ export interface IUser extends Document {
   birthday: Date;
   email: string;
   password: string;
+  refreshToken?: string;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -38,6 +39,7 @@ const UserSchema: Schema<IUser> = new Schema(
       required: true,
       minlength: 6,
     },
+    refreshToken: { type: String }
   },
   {
     timestamps: true,

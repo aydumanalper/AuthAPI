@@ -1,16 +1,15 @@
 
 import { Request, Response, NextFunction } from 'express';
-import User, { IUser } from '../models/User';
-import jwt from 'jsonwebtoken';
+import User from '../models/User';
 import dotenv from 'dotenv';
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+} from '../utils/tokenUtils';
 
 dotenv.config();
 
-const generateToken = (user: IUser) => {
-  return jwt.sign({ id: user._id }, process.env.JWT_SECRET as string, {
-    expiresIn: '1h',
-  });
-};
 
 export const register = async (
   req: Request,
@@ -39,7 +38,12 @@ export const register = async (
     });
 
     // Generate token
-    const token = generateToken(user);
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+
+    // Save refresh token in the database
+    user.refreshToken = refreshToken;
+    await user.save();
 
     res.status(201).json({
       success: true,
@@ -48,7 +52,8 @@ export const register = async (
         name: user.name,
         surname: user.surname,
         email: user.email,
-        token,
+        accessToken,
+        refreshToken,
       },
     });
   } catch (error) {
@@ -81,7 +86,12 @@ export const login = async (
     }
 
     // Generate token
-    const token = generateToken(user);
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+
+      // Save refresh token in the database
+      user.refreshToken = refreshToken;
+      await user.save();
 
     res.status(200).json({
       success: true,
@@ -90,7 +100,65 @@ export const login = async (
         name: user.name,
         surname: user.surname,
         email: user.email,
-        token,
+        accessToken,
+        refreshToken,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+export const reauth = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      res.status(400).json({
+        success: false,
+        message: 'Refresh Token is required',
+      });
+      return;
+    }
+
+    // Verify Refresh Token
+    const userId = verifyRefreshToken(refreshToken);
+    if (!userId) {
+      res.status(401).json({
+        success: false,
+        message: 'Invalid Refresh Token',
+      });
+      return;
+    }
+
+    // Find user and validate refresh token
+    const user = await User.findById(userId);
+    if (!user || user.refreshToken !== refreshToken) {
+      res.status(401).json({
+        success: false,
+        message: 'Invalid Refresh Token',
+      });
+      return;
+    }
+
+    // Generate new Access Token
+    const newAccessToken = generateAccessToken(user);
+
+    // Generate a new Refresh Token
+    const newRefreshToken = generateRefreshToken(user);
+    user.refreshToken = newRefreshToken;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      data: {
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken, 
       },
     });
   } catch (error) {
